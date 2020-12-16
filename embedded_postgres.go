@@ -48,17 +48,8 @@ func newDatabaseWithConfig(config Config) *EmbeddedPostgres {
 	}
 }
 
-// Start will try to start the configured Postgres process returning an error when there were any problems with invocation.
-// If any error occurs Start will try to also Stop the Postgres process in order to not leave any sub-process running.
-func (ep *EmbeddedPostgres) Start() error {
-	if ep.started {
-		return errors.New("server is already started")
-	}
-
-	if err := ensurePortAvailable(ep.config.port); err != nil {
-		return err
-	}
-
+// Install will make filesystem modifications, retrieving and extracting the PostgreSQL binaries into the configured directory.
+func (ep *EmbeddedPostgres) Install() error {
 	cacheLocation, exists := ep.cacheLocator()
 	if !exists {
 		if err := ep.remoteFetchStrategy(); err != nil {
@@ -79,12 +70,17 @@ func (ep *EmbeddedPostgres) Start() error {
 		return err
 	}
 
-	if err := startPostgres(binaryExtractLocation, ep.config); err != nil {
-		return err
+	return nil
+}
+
+// CreateDatabase will issue the "CREATE DATABASE" command on a running server
+func (ep *EmbeddedPostgres) CreateDatabase() error {
+	if !ep.started {
+		return errors.New("server is not started")
 	}
 
-	ep.started = true
-
+	cacheLocation, _ := ep.cacheLocator()
+	binaryExtractLocation := userLocationOrDefault(ep.config.runtimePath, cacheLocation)
 	if err := ep.createDatabase(ep.config.port, ep.config.username, ep.config.password, ep.config.database); err != nil {
 		if stopErr := stopPostgres(binaryExtractLocation); stopErr != nil {
 			return fmt.Errorf("unable to stop database casused by error %s", err)
@@ -92,6 +88,28 @@ func (ep *EmbeddedPostgres) Start() error {
 
 		return err
 	}
+
+	return nil
+}
+
+// Start will try to start the configured Postgres process returning an error when there were any problems with invocation.
+// If any error occurs Start will try to also Stop the Postgres process in order to not leave any sub-process running.
+func (ep *EmbeddedPostgres) Start() error {
+	if ep.started {
+		return errors.New("server is already started")
+	}
+
+	if err := ensurePortAvailable(ep.config.port); err != nil {
+		return err
+	}
+
+	cacheLocation, _ := ep.cacheLocator()
+	binaryExtractLocation := userLocationOrDefault(ep.config.runtimePath, cacheLocation)
+	if err := startPostgres(binaryExtractLocation, ep.config); err != nil {
+		return err
+	}
+
+	ep.started = true
 
 	if err := healthCheckDatabaseOrTimeout(ep.config); err != nil {
 		if stopErr := stopPostgres(binaryExtractLocation); stopErr != nil {
