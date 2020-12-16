@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
+	embeddedpostgres "github.com/aquametalabs/embedded-postgres"
 )
 
 func main() {

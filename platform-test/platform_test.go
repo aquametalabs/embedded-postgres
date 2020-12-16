@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/fergusstrange/embedded-postgres"
+	"github.com/aquametalabs/embedded-postgres"
 )
 
 func Test_AllMajorVersions(t *testing.T) {
