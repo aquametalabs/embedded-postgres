@@ -92,6 +92,10 @@ func (ep *EmbeddedPostgres) CreateDatabase() error {
 	return nil
 }
 
+func (ep *EmbeddedPostgres) IsStarted() bool {
+    return ep.started
+}
+
 // Start will try to start the configured Postgres process returning an error when there were any problems with invocation.
 // If any error occurs Start will try to also Stop the Postgres process in order to not leave any sub-process running.
 func (ep *EmbeddedPostgres) Start() error {
@@ -111,6 +115,8 @@ func (ep *EmbeddedPostgres) Start() error {
 
 	ep.started = true
 
+/*
+    commenting this out because I think it's screwing things up because the database has not yet been created.
 	if err := healthCheckDatabaseOrTimeout(ep.config); err != nil {
 		if stopErr := stopPostgres(binaryExtractLocation); stopErr != nil {
 			return fmt.Errorf("unable to stop database casused by error %s", err)
@@ -118,6 +124,7 @@ func (ep *EmbeddedPostgres) Start() error {
 
 		return err
 	}
+*/
 
 	return nil
 }
