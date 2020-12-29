@@ -54,6 +54,23 @@ func createPasswordFile(binaryExtractLocation, password string) (string, error) 
 	return passwordFileLocation, nil
 }
 
+func defaultDatabaseExists(port uint32, username, password, database string) bool, error {
+	if database == "postgres" {
+		return nil
+	}
+
+	conn, err := openDatabaseConnection(port, username, password, "postgres")
+	if err != nil {
+		return errorCustomDatabase(database, err)
+	}
+
+	if _, err := sql.OpenDB(conn).Exec(fmt.Sprintf("CREATE DATABASE %s", database)); err != nil {
+		return errorCustomDatabase(database, err)
+	}
+
+	return nil
+}
+
 func defaultCreateDatabase(port uint32, username, password, database string) error {
 	if database == "postgres" {
 		return nil
